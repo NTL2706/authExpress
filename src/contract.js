@@ -1,105 +1,115 @@
-const env = require('./env');
-const ContractAbi = require('./klaytnAbi');
-const Caver = require('caver-js');
+const env = require("./env");
+const ContractAbi = require("./klaytnAbi");
+const Caver = require('caver-js')
 const caver = new Caver('https://public-node-api.klaytnapi.com/v1/cypress');
 let account;
 
-let contract = new caver.klay.Contract(ContractAbi, env.klaytnContractAdress);
+let contract = new caver
+    .klay
+    .Contract(ContractAbi, env.klaytnContractAdress);
 
 const walletCreate = async () => {
-  const account = await caver.wallet.keyring.generate();
 
-  const publicKey = account.address;
+    const account = await caver
+        .wallet
+        .keyring
+        .generate();
 
-  const privateKey = account._key._privateKey;
+    const publicKey = account.address;
 
-  const wallet = {
-    publicKey: publicKey,
-    privateKey: privateKey,
-  };
+    const privateKey = account._key._privateKey;
 
-  //console.log(publicKey, "private", privateKey);
+    const wallet = {
+        "publicKey": publicKey,
+        "privateKey": privateKey
+    };
 
-  return wallet;
+    //console.log(publicKey, "private", privateKey);
+
+    return wallet;
 };
 
 const getBalance = async (privateKey) => {
-  let balance;
+    let balance;
 
-  if (account === undefined) {
-    account = await accountAdd(privateKey);
-  }
+    if (account === undefined) {
+        account = await accountAdd(privateKey);
+    }
 
-  await contract.methods
-    .balanceOf(account.address)
-    .call()
-    .then((result) => {
-      balance = { balance: caver.utils.fromPeb(result, 'KLAY') };
-    })
-    .catch((error) => {
-      console.log(error);
-      balance = { error: error };
-    });
+    await contract
+        .methods
+        .balanceOf(account.address)
+        .call()
+        .then(result => {
+            balance = { "balance": caver.utils.fromPeb(result, 'KLAY') };
+        })
+        .catch(error => {
+            console.log(error);
+            balance = { "error": error };
+        });
 
-  return balance;
+    return balance;
 };
 
 const transfer = async (privateKey, recipient, amount) => {
-  let result;
+    let result;
 
-  if (account === undefined) {
-    account = await accountAdd(privateKey);
-  }
+    if (account === undefined) {
+        account = await accountAdd(privateKey);
+    }
 
-  const callObj = contract.methods.transfer(
-    recipient,
-    caver.utils.toPeb(amount, 'KLAY')
-  );
+    const callObj = contract
+        .methods
+        .transfer(recipient, caver.utils.toPeb(amount, 'KLAY'));
 
-  const option = {
-    from: account.address,
-  };
+    const option = {
+        from: account.address
+    };
 
-  //console.log("klaytn balance", await web3.eth.getBalance(account.address));
+    //console.log("klaytn balance", await web3.eth.getBalance(account.address));
 
-  const gas = await estimateGas(callObj, option);
-  if (gas == 'failed') {
-    result = { error: 'There is not enough klay balance in wallet.' };
-  } else {
-    await contract.methods
-      .transfer(recipient, caver.utils.toPeb(amount, 'KLAY'))
-      .send({ from: account.address, gas: gas })
-      .then((data) => {
-        result = { result: data };
-      })
-      .catch((error) => {
-        console.log(error);
-        result = { error: error };
-      });
-  }
+    const gas = await estimateGas(callObj, option);
+    if (gas == "failed") {
+        result = { "error": "There is not enough klay balance in wallet." }
+    } else {
+        await contract
+            .methods
+            .transfer(recipient, caver.utils.toPeb(amount, 'KLAY'))
+            .send({ from: account.address, gas: gas })
+            .then((data) => {
+                result = { "result": data };
+            })
+            .catch(error => {
+                console.log(error);
+                result = { "error": error };
+            });
+    }
 
-  return result;
+    return result;
+
 };
 
 async function estimateGas(callObj, option) {
-  let gas;
 
-  await callObj
-    .estimateGas(option)
-    .then(function (gasAmount) {
-      gas = gasAmount;
-    })
-    .catch(function (error) {
-      console.log(error);
-      gas = 'failed';
-    });
+    let gas;
 
-  return gas;
+    await callObj
+        .estimateGas(option)
+        .then(function (gasAmount) {
+            gas = gasAmount;
+        })
+        .catch(function (error) {
+            console.log(error);
+            gas = "failed";
+        })
+
+    return gas;
 }
 
 async function accountAdd(privateKey) {
-  return await caver.klay.accounts.wallet.add(privateKey);
+    return await caver.klay.accounts.wallet.add(privateKey);
 }
+
 
 exports.walletCreate = walletCreate;
 exports.transfer = transfer;
