@@ -1,0 +1,23 @@
+{
+  "compilerOptions": {
+    "baseUrl": "./src",
+    "paths": {
+      "configs": ["configs/index"],
+      "configs/*": ["configs/*"],
+      "controllers": ["controllers/index"],
+      "controllers/*": ["controllers/*"],
+      "helpers": ["helpers/index"],
+      "helpers/*": ["helpers/*"],
+      "middlewares": ["middlewares/index"],
+      "middlewares/*": ["middlewares/*"],
+      "models": ["models/index"],
+      "models/*": ["models/*"],
+      "routes": ["routes/index"],
+      "routes/*": ["routes/*"],
+      "services": ["services/index"],
+      "services/*": ["services/*"],
+      "src/*": ["src/*"]
+    }
+  },
+  "exclude": ["node_modules", "babel.config.js", "metro.config.js", "jest.config.js"]
+}

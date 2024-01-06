@@ -1,32 +1,24 @@
-const jwt = require('jsonwebtoken')
-const config = require('../config')
-const redis = require('../../config/redis.config')
+import jwt from 'jsonwebtoken';
 
-function genToken(payload) {
-  const accessToken = jwt.sign(payload, config.ACCESS_TOKEN_KEY, {
-    expiresIn: config.TIME_EXPIRE_ACCESS_TOKEN,
-  })
+import { CONFIG } from 'configs/constants';
+import { redis } from 'configs/database';
 
-  const refreshToken = jwt.sign({ accessToken }, config.REFRESH_TOKEN_KEY, {
-    expiresIn: config.TIME_EXPIRE_REFRESH_TOKEN,
-  })
+export function genToken(payload) {
+  const accessToken = jwt.sign(payload, CONFIG.ACCESS_TOKEN_KEY, {
+    expiresIn: CONFIG.TIME_EXPIRE_ACCESS_TOKEN
+  });
+
+  const refreshToken = jwt.sign({ accessToken }, CONFIG.REFRESH_TOKEN_KEY, {
+    expiresIn: CONFIG.TIME_EXPIRE_REFRESH_TOKEN
+  });
 
   redis.set(
     `accessToken/${accessToken}`,
     JSON.stringify({ refreshToken }),
     'EX',
-    config.TIME_EXPIRE_REFRESH_TOKEN + 60 * 2
-  )
-  redis.set(
-    `refreshToken/${refreshToken}`,
-    {},
-    'EX',
-    config.TIME_EXPIRE_REFRESH_TOKEN + 60 * 2
-  )
+    CONFIG.TIME_EXPIRE_REFRESH_TOKEN + 60 * 2
+  );
+  redis.set(`refreshToken/${refreshToken}`, {}, 'EX', CONFIG.TIME_EXPIRE_REFRESH_TOKEN + 60 * 2);
 
-  return { accessToken, refreshToken }
-}
-
-module.exports = {
-  genToken,
+  return { accessToken, refreshToken };
 }

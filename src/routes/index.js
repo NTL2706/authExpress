@@ -1,5 +1,11 @@
-const userRouter = require('./users');
+import express from 'express';
 
-module.exports = (app) => {
-  app.use('/users', userRouter);
-};
+import users from './users';
+import wallet from './wallet';
+
+const router = express.Router();
+
+router.use('/users', users);
+router.use('/wallet', wallet);
+
+export default router;
