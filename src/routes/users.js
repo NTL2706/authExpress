@@ -2,17 +2,19 @@ import express from 'express';
 import passport from 'passport';
 
 import {
-  onLogin,
-  onRegister,
-  onForgotPassword,
-  onResetPassword,
-  onLoginGoogle,
-  onLogout,
-  onGetProfile
+    onLogin,
+    onRegister,
+    onForgotPassword,
+    onResetPassword,
+    onLoginGoogle,
+    onLogout,
+    onGetProfile,
+    sendOtpForMail
 } from 'controllers/auth_controller';
 import { validateToken, emailValidation, passwordValidation } from 'middlewares/validate';
 
 const registerValidation = [emailValidation, passwordValidation];
+const sendMailValidation = [emailValidation];
 const forgotValidation = [emailValidation, passwordValidation];
 
 const router = express.Router();
@@ -20,16 +22,17 @@ const router = express.Router();
 // Authentication routes
 router.post('/login', onLogin);
 router.post('/register', registerValidation, onRegister);
+router.post('/send-otp', sendMailValidation, sendOtpForMail);
 router.post('/forgot-password', forgotValidation, onForgotPassword);
 router.put('/reset-password', registerValidation, onResetPassword);
 
 // Google authentication
 router.get(
-  '/google',
-  passport.authenticate('google', {
-    scope: ['profile', 'email'],
-    session: false
-  })
+    '/google',
+    passport.authenticate('google', {
+        scope: ['profile', 'email'],
+        session: false
+    })
 );
 router.get('/google/callback', passport.authenticate('google', { failureRedirect: '/login' }), onLoginGoogle);
 
