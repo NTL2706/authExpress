@@ -106,26 +106,14 @@ const onForgotPassword = async (req, res, next) => {
         if (!user) return res.status(401).json({ message: 'Invalid email' });
         if (user.secret === '') return res.status(401).json({ message: 'Account login google' });
 
-        const verified = speakeasy.totp.verify({
-            secret: user.secret,
-            encoding: 'base32',
-            token: otp,
-            window: 1
-        });
 
-        if (verified) {
-            redis.set(`reset/${email}`, 'check', 'EX', CONFIG.TIME_EXPIRE_ACCESS_TOKEN);
+        const checkOtp = await redis.get(`otp/${email}`);
+        if (checkOtp && checkOtp === otp) {
+            redis.del(`otp/${email}`);
+            redis.set(`reset/${email}`, 'check', 'EX', CONFIG.TIME_EXPIRE_RESET_PW);
             return res.status(200).json({ message: 'Verify success' });
         }
-        else {
-            const checkOtp = await redis.get(`otp/${email}`);
-            if (checkOtp && checkOtp === otp) {
-                redis.del(`otp/${email}`);
-                redis.set(`reset/${email}`, 'check', 'EX', CONFIG.TIME_EXPIRE_RESET_PW);
-                return res.status(200).json({ message: 'Verify success' });
-            }
-            return res.status(401).json({ message: 'Verify fail' });
-        }
+        return res.status(401).json({ message: 'Verify fail' });
     } catch (error) {
         console.log(error);
         return res.status(500).json({ message: 'Error forgot pw user' });
